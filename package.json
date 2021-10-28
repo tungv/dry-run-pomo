@@ -6,7 +6,8 @@
   "scripts": {
     "start": "next start",
     "build": "next build",
-    "dev": "next"
+    "dev": "next",
+    "deploy": "vc --prod"
   },
   "keywords": [],
   "author": "",
