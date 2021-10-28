@@ -1,12 +1,37 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CountDown from "../components/CountDown";
 import Duration from "../components/Duration";
+import getDuration from "../components/getDuration";
 
-const FULL_CYCLE = 25 * 60 * 1000;
+// const FULL_CYCLE = 25 * 60 * 1000;
+const FULL_CYCLE = 0.05 * 60 * 1000;
 
 export default function PomodoroHome() {
   const [stopTime, setStopTime] = useState(0);
   const [pauseTime, setPausing] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("interval");
+      const { minutes, seconds } = getDuration(stopTime, Date.now());
+
+      document.title = `${minutes}:${seconds}`;
+
+      if (pauseTime) {
+        return;
+      }
+      if (stopTime < Date.now()) {
+        setStopTime(0);
+      }
+
+      if (stopTime === 0) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [stopTime, pauseTime]);
+
   return (
     <div>
       <button
