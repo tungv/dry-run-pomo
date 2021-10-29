@@ -1,10 +1,37 @@
-import { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
+import CountDown from "../components/CountDown";
+import Duration from "../components/Duration";
+import getDuration from "../components/getDuration";
 
 const FULL_CYCLE = 25 * 60 * 1000;
+// const FULL_CYCLE = 0.05 * 60 * 1000;
 
 export default function PomodoroHome() {
   const [stopTime, setStopTime] = useState(0);
   const [pauseTime, setPausing] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("interval");
+      const { minutes, seconds } = getDuration(stopTime, Date.now());
+
+      document.title = `${minutes}:${seconds}`;
+
+      if (pauseTime) {
+        return;
+      }
+      if (stopTime < Date.now()) {
+        setStopTime(0);
+      }
+
+      if (stopTime === 0) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [stopTime, pauseTime]);
+
   return (
     <div>
       <button
@@ -41,50 +68,4 @@ export default function PomodoroHome() {
       <pre>{JSON.stringify({ stopTime, pauseTime }, null, 2)}</pre>
     </div>
   );
-}
-
-function CountDown(props) {
-  const [_, refresh] = useReducer((i) => i + 1, 0);
-
-  useEffect(() => {
-    let unmounted = false;
-    requestAnimationFrame(() => {
-      if (unmounted) return;
-      refresh();
-    });
-
-    return () => {
-      unmounted = true;
-    };
-  });
-
-  return <Duration futureMs={props.to} />;
-}
-
-function Duration(props) {
-  const { minutes, seconds, milliseconds } = duration(
-    props.futureMs,
-    props.startMs ?? Date.now(),
-  );
-  return (
-    <div>
-      {minutes}:{seconds}.{milliseconds}
-    </div>
-  );
-}
-
-function duration(
-  future: number,
-  start: number,
-): {
-  minutes: string;
-  seconds: string;
-  milliseconds: string;
-} {
-  const eta = future - start;
-
-  const milliseconds = String(eta % 1000).padStart(3, "0");
-  const seconds = String(Math.floor((eta / 1000) % 60)).padStart(2, "0");
-  const minutes = String(Math.floor((eta / 1000 / 60) % 60));
-  return { minutes, seconds, milliseconds };
 }
