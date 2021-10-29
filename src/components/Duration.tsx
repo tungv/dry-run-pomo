@@ -1,4 +1,3 @@
-import { CSSProperties } from "react";
 import duration from "./getDuration";
 
 // https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-numeric
