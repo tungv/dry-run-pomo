@@ -12,13 +12,18 @@ function useAnimationFrame() {
 
   useEffect(() => {
     let unmounted = false;
-    requestAnimationFrame(() => {
-      if (unmounted) return;
-      refresh();
-    });
+
+    function requestRefresh() {
+      if (!unmounted) {
+        refresh();
+        requestAnimationFrame(() => requestRefresh());
+      }
+    }
+
+    requestRefresh();
 
     return () => {
       unmounted = true;
     };
-  });
+  }, []);
 }
