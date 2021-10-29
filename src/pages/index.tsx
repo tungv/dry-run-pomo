@@ -12,7 +12,7 @@ export default function PomodoroHome() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log("interval");
+      // console.log("interval");
       const { minutes, seconds } = getDuration(stopTime, Date.now());
 
       document.title = `${minutes}:${seconds}`;
