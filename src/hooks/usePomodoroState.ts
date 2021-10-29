@@ -1,4 +1,5 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
+import getDuration from "../components/getDuration";
 import { FULL_CYCLE } from "../pages/index";
 
 interface PomodoroState {
@@ -41,11 +42,37 @@ function reducer(state: PomodoroState, action: PomodoroAction): PomodoroState {
 export default function usePomodoroState() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  return {
-    ...state,
+  const api = {
     start: () => dispatch({ type: "start" }),
     pause: () => dispatch({ type: "pause" }),
     reset: () => dispatch({ type: "reset" }),
     resume: () => dispatch({ type: "resume" }),
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // console.log("interval");
+      const { minutes, seconds } = getDuration(state.stopTime, Date.now());
+
+      document.title = `${minutes}:${seconds}`;
+
+      // do nothing when paused
+      if (state.pauseTime) {
+        return;
+      }
+
+      // reset when time is up
+      if (state.stopTime < Date.now()) {
+        api.reset();
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [state.stopTime, state.pauseTime]);
+
+  return {
+    ...state,
+    ...api,
   };
 }

@@ -11,28 +11,6 @@ export default function PomodoroHome() {
   const { stopTime, pauseTime, start, pause, reset, resume } =
     usePomodoroState();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // console.log("interval");
-      const { minutes, seconds } = getDuration(stopTime, Date.now());
-
-      document.title = `${minutes}:${seconds}`;
-
-      // do nothing when paused
-      if (pauseTime) {
-        return;
-      }
-
-      // reset when time is up
-      if (stopTime < Date.now()) {
-        reset();
-        clearInterval(interval);
-      }
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [stopTime, pauseTime]);
-
   return (
     <div>
       <button onClick={start}>Start</button>
