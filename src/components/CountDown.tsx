@@ -4,8 +4,6 @@ import Duration from "./Duration";
 export default function CountDown(props) {
   useAnimationFrame();
 
-  console.log("rerender");
-
   return <Duration futureMs={props.to} />;
 }
 
