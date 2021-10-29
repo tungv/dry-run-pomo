@@ -1,32 +1,43 @@
 import { useEffect, useReducer } from "react";
 import getDuration from "../components/getDuration";
-import { FULL_CYCLE } from "../pages/index";
+
+const FULL_CYCLE = 5 * 60 * 1000;
+// const FULL_CYCLE = 25 * 60 * 1000;
 
 interface PomodoroState {
-  stopTime: number;
-  pauseTime: number;
+  nextStop: number;
+  remaining: number;
+  isRunning: boolean;
+  hasStarted: boolean;
 }
 type PomodoroAction =
   | { type: "start" }
   | { type: "pause" }
   | { type: "reset" }
   | { type: "resume" };
+
 const initialState: PomodoroState = {
-  stopTime: 0,
-  pauseTime: 0,
+  nextStop: 0,
+  remaining: FULL_CYCLE,
+  isRunning: false,
+  hasStarted: false,
 };
+
 function reducer(state: PomodoroState, action: PomodoroAction): PomodoroState {
   switch (action.type) {
     case "start":
       return {
         ...state,
-        stopTime: Date.now() + FULL_CYCLE,
-        pauseTime: 0,
+        isRunning: true,
+        hasStarted: true,
+        nextStop: Date.now() + FULL_CYCLE,
+        remaining: FULL_CYCLE,
       };
     case "pause":
       return {
         ...state,
-        pauseTime: Date.now(),
+        isRunning: false,
+        remaining: state.nextStop - Date.now(),
       };
     case "reset":
       return initialState;
@@ -34,14 +45,14 @@ function reducer(state: PomodoroState, action: PomodoroAction): PomodoroState {
     case "resume":
       return {
         ...state,
-        stopTime: state.stopTime + (Date.now() - state.pauseTime),
-        pauseTime: 0,
+        isRunning: true,
+        nextStop: Date.now() + state.remaining,
       };
   }
 }
-export default function usePomodoroState() {
-  const [state, dispatch] = useReducer(reducer, initialState);
 
+function usePomodoroState() {
+  const [state, dispatch] = useReducer(reducer, initialState);
   const api = {
     start: () => dispatch({ type: "start" }),
     pause: () => dispatch({ type: "pause" }),
@@ -49,27 +60,33 @@ export default function usePomodoroState() {
     resume: () => dispatch({ type: "resume" }),
   };
 
+  return [state, api] as const;
+}
+
+export default function usePomodoro() {
+  const [state, api] = usePomodoroState();
+
   useEffect(() => {
     const interval = setInterval(() => {
       // console.log("interval");
-      const { minutes, seconds } = getDuration(state.stopTime, Date.now());
+      const { minutes, seconds } = getDuration(state.nextStop, Date.now());
 
       document.title = `${minutes}:${seconds}`;
 
       // do nothing when paused
-      if (state.pauseTime) {
+      if (!state.isRunning) {
         return;
       }
 
       // reset when time is up
-      if (state.stopTime < Date.now()) {
+      if (state.nextStop <= Date.now()) {
         api.reset();
         clearInterval(interval);
       }
     }, 100);
 
     return () => clearInterval(interval);
-  }, [state.stopTime, state.pauseTime]);
+  }, [state.nextStop, state.isRunning]);
 
   return {
     ...state,
